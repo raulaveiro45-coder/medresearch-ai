@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedResearch AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1117;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --accent: #c8402a;
+    --accent2: #2a5fc8;
+    --muted: #7a7060;
+    --border: #d4cfc3;
+    --success: #2a8a4a;
+    --card: #faf7f2;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.3rem; font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 0.9rem;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .nav-tabs {
+    display: flex; gap: 4px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px;
+  }
+
+  .nav-tab {
+    padding: 7px 16px;
+    border-radius: 7px; border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    background: transparent; color: var(--muted);
+  }
+
+  .nav-tab.active {
+    background: var(--ink); color: white;
+  }
+
+  .nav-tab:hover:not(.active) { background: var(--border); color: var(--ink); }
+
+  .nav-right {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 0.82rem;
+  }
+
+  .badge-free {
+    background: var(--cream); border: 1px solid var(--border);
+    color: var(--muted); padding: 4px 10px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 500;
+  }
+
+  .btn-upgrade {
+    background: var(--accent); color: white;
+    border: none; padding: 8px 16px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-upgrade:hover { background: #a8341f; transform: translateY(-1px); }
+
+  /* PAGES */
+  .page { display: none; padding: 40px 48px; max-width: 960px; margin: 0 auto; }
+  .page.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* PAGE HEADER */
+  .page-header { margin-bottom: 36px; }
+
+  .page-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; font-weight: 500;
+    color: var(--accent); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+
+  .page-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 2rem; font-weight: 700;
+    line-height: 1.2; letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+
+  .page-desc { color: var(--muted); font-size: 0.95rem; line-height: 1.6; max-width: 600px; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1rem; font-weight: 700;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .card-title .icon {
+    width: 28px; height: 28px;
+    background: var(--cream); border: 1px solid var(--border);
+    border-radius: 7px; display: flex; align-items: center;
+    justify-content: center; font-size: 0.85rem;
+  }
+
+  /* FORMS */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1/-1; }
+
+  label {
+    font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  input, select, textarea {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    background: white; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    color: var(--ink); transition: border 0.2s;
+    outline: none;
+  }
+
+  input:focus, select:focus, textarea:focus { border-color: var(--accent2); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .btn-primary {
+    background: var(--ink); color: white;
+    border: none; padding: 12px 24px;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+
+  .btn-primary:hover { background: #1e2730; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    background: white; color: var(--ink);
+    border: 1px solid var(--border); padding: 10px 20px;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-secondary:hover { background: var(--cream); }
+
+  /* OUTPUT BLOCKS */
+  .output-block {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .output-block.visible { display: block; }
+
+  .result-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px;
+    margin-top: 20px;
+  }
+
+  .result-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  .result-text {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1rem; line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .result-text strong { color: var(--accent); font-style: italic; }
+
+  .objectives-list { list-style: none; margin-top: 12px; }
+  .objectives-list li {
+    padding: 10px 14px;
+    background: var(--cream); border-radius: 8px;
+    margin-bottom: 8px; font-size: 0.88rem; line-height: 1.5;
+    border-left: 3px solid var(--accent2);
+    display: flex; gap: 10px;
+  }
+
+  .obj-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem; color: var(--accent2);
+    font-weight: 500; min-width: 20px; padding-top: 1px;
+  }
+
+  /* DESIGN SELECTOR */
+  .questions-flow { display: flex; flex-direction: column; gap: 20px; }
+
+  .question-block {
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    background: white;
+  }
+
+  .question-text {
+    font-size: 0.95rem; font-weight: 500;
+    margin-bottom: 14px; line-height: 1.4;
+  }
+
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .option-btn {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px; background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem; cursor: pointer;
+    transition: all 0.2s; text-align: left;
+    color: var(--ink); font-weight: 400;
+  }
+
+  .option-btn:hover { border-color: var(--accent2); background: #f0f4ff; }
+  .option-btn.selected { border-color: var(--accent2); background: #e8eeff; font-weight: 500; }
+
+  .design-result {
+    background: var(--ink); color: white;
+    border-radius: 12px; padding: 24px;
+    margin-top: 20px; display: none;
+  }
+
+  .design-result.visible { display: block; animation: fadeIn 0.4s ease; }
+
+  .design-name {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.4rem; font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .design-meta {
+    font-size: 0.82rem; color: #aaa; margin-bottom: 16px;
+  }
+
+  .design-pros, .design-cons {
+    font-size: 0.85rem; line-height: 1.8;
+  }
+
+  .design-pros span { color: #7dd3a8; }
+  .design-cons span { color: #f4a89a; }
+
+  /* SAMPLE SIZE */
+  .calc-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+
+  .calc-tab {
+    padding: 8px 18px; border-radius: 8px;
+    border: 1px solid var(--border); background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem; cursor: pointer; transition: all 0.2s;
+    color: var(--muted);
+  }
+
+  .calc-tab.active { background: var(--ink); color: white; border-color: var(--ink); }
+
+  .calc-panel { display: none; }
+  .calc-panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+  .result-number {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 3.5rem; font-weight: 700;
+    color: var(--accent); line-height: 1;
+  }
+
+  .result-number-label {
+    font-size: 0.8rem; color: var(--muted);
+    font-weight: 500; margin-top: 4px;
+  }
+
+  .result-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-top: 20px;
+  }
+
+  .result-stat {
+    background: var(--cream); border-radius: 10px; padding: 16px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.2rem; font-weight: 500; color: var(--ink);
+  }
+
+  .stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* STATS RECOMMENDER */
+  .stat-select-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+
+  .stat-result {
+    background: white; border: 2px solid var(--border);
+    border-radius: 14px; padding: 24px; display: none;
+  }
+
+  .stat-result.visible { display: block; animation: fadeIn 0.4s ease; }
+
+  .stat-test-name {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--accent2); margin-bottom: 6px;
+  }
+
+  .stat-interp {
+    font-size: 0.88rem; color: var(--muted);
+    line-height: 1.7; margin-top: 12px;
+    padding: 14px; background: var(--cream); border-radius: 9px;
+  }
+
+  .stat-assumptions { margin-top: 14px; }
+  .stat-assumption {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 0.84rem; margin-bottom: 6px; line-height: 1.5;
+  }
+  .check { color: var(--success); font-size: 0.9rem; }
+
+  /* ARTICLE GENERATOR */
+  .template-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+
+  .template-card {
+    border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 18px; cursor: pointer; transition: all 0.2s;
+    background: white;
+  }
+
+  .template-card:hover { border-color: var(--accent2); }
+  .template-card.selected { border-color: var(--accent2); background: #f0f4ff; }
+
+  .template-icon { font-size: 1.5rem; margin-bottom: 8px; }
+  .template-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 4px; }
+  .template-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
+  .structure-output {
+    display: none; margin-top: 20px;
+  }
+
+  .structure-output.visible { display: block; animation: fadeIn 0.4s ease; }
+
+  .section-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 18px; background: white;
+    border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 8px; transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .section-item:hover { border-color: var(--accent2); transform: translateX(4px); }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--muted);
+    background: var(--cream); padding: 3px 7px;
+    border-radius: 5px; margin-top: 2px;
+    white-space: nowrap;
+  }
+
+  .section-content { flex: 1; }
+  .section-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 3px; }
+  .section-hint { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
+  .section-words {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--accent);
+    white-space: nowrap; margin-top: 3px;
+  }
+
+  /* LOADING */
+  .loading-dots {
+    display: none; align-items: center; gap: 4px;
+    padding: 16px 0;
+  }
+
+  .loading-dots.visible { display: flex; }
+  .loading-dots span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted);
+    animation: bounce 0.8s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* HOME */
+  .home-hero {
+    text-align: center; padding: 60px 20px 48px;
+  }
+
+  .home-eyebrow {
+    display: inline-block;
+    background: var(--cream); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--muted);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .home-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 3rem; font-weight: 700;
+    line-height: 1.15; letter-spacing: -0.03em;
+    max-width: 620px; margin: 0 auto 16px;
+  }
+
+  .home-title em { color: var(--accent); font-style: italic; }
+
+  .home-sub {
+    color: var(--muted); font-size: 1rem;
+    line-height: 1.7; max-width: 480px; margin: 0 auto 36px;
+  }
+
+  .home-cta { display: flex; gap: 12px; justify-content: center; }
+
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+
+  .feature-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px;
+    transition: all 0.2s; cursor: pointer;
+  }
+
+  .feature-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+
+  .feature-emoji { font-size: 1.6rem; margin-bottom: 10px; }
+  .feature-name { font-weight: 600; font-size: 0.92rem; margin-bottom: 5px; }
+  .feature-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+  .feature-tag {
+    display: inline-block; margin-top: 10px;
+    font-size: 0.7rem; font-family: 'DM Mono', monospace;
+    padding: 2px 8px; border-radius: 4px;
+  }
+
+  .tag-free { background: #e8f5e9; color: #2a8a4a; }
+  .tag-premium { background: #fff3e0; color: #c8402a; }
+
+  /* DIVIDER */
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .page { padding: 28px 20px; }
+    .nav-tabs { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .template-grid { grid-template-columns: 1fr; }
+    .stat-select-row { grid-template-columns: 1fr; }
+    .result-grid { grid-template-columns: 1fr 1fr; }
+    .home-title { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    MedResearch<span>AI</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">Inicio</button>
+    <button class="nav-tab" onclick="showPage('pico')">Pregunta PICO</button>
+    <button class="nav-tab" onclick="showPage('design')">Diseño</button>
+    <button class="nav-tab" onclick="showPage('sample')">Muestra</button>
+    <button class="nav-tab" onclick="showPage('stats')">Estadística</button>
+    <button class="nav-tab" onclick="showPage('article')">Artículo</button>
+  </div>
+  <div class="nav-right">
+    <span class="badge-free">Plan Gratis</span>
+    <button class="btn-upgrade">✦ Premium</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="home" class="page active" style="max-width: 960px;">
+  <div class="home-hero">
+    <div class="home-eyebrow">MVP · Herramienta de Investigación Científica</div>
+    <h1 class="home-title">De la idea a la <em>publicación</em>, guiado por IA</h1>
+    <p class="home-sub">Diseña, estructura y redacta tu investigación en ciencias de la salud con asistencia inteligente en cada etapa del proceso.</p>
+    <div class="home-cta">
+      <button class="btn-primary" onclick="showPage('pico')">✦ Comenzar nuevo proyecto</button>
+      <button class="btn-secondary">Ver demo</button>
+    </div>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card" onclick="showPage('pico')">
+      <div class="feature-emoji">🎯</div>
+      <div class="feature-name">Generador PICO</div>
+      <div class="feature-desc">Transforma tu tema en una pregunta de investigación estructurada con objetivos claros.</div>
+      <span class="feature-tag tag-free">GRATIS</span>
+    </div>
+    <div class="feature-card" onclick="showPage('design')">
+      <div class="feature-emoji">🧬</div>
+      <div class="feature-name">Diseño Metodológico</div>
+      <div class="feature-desc">Responde preguntas guiadas y obtén el diseño de estudio más adecuado para tu investigación.</div>
+      <span class="feature-tag tag-free">GRATIS</span>
+    </div>
+    <div class="feature-card" onclick="showPage('sample')">
+      <div class="feature-emoji">📊</div>
+      <div class="feature-name">Tamaño Muestral</div>
+      <div class="feature-desc">Calcula el número de participantes necesarios con fundamento estadístico riguroso.</div>
+      <span class="feature-tag tag-free">GRATIS</span>
+    </div>
+    <div class="feature-card" onclick="showPage('stats')">
+      <div class="feature-emoji">📈</div>
+      <div class="feature-name">Test Estadístico</div>
+      <div class="feature-desc">Selecciona la prueba estadística correcta según el tipo de variables y diseño de tu estudio.</div>
+      <span class="feature-tag tag-free">GRATIS</span>
+    </div>
+    <div class="feature-card" onclick="showPage('article')">
+      <div class="feature-emoji">📝</div>
+      <div class="feature-name">Estructura de Artículo</div>
+      <div class="feature-desc">Genera plantillas completas para artículo original, caso clínico o revisión narrativa.</div>
+      <span class="feature-tag tag-premium">PREMIUM</span>
+    </div>
+    <div class="feature-card" style="opacity:0.5; cursor:default;">
+      <div class="feature-emoji">🔗</div>
+      <div class="feature-name">PubMed Connect</div>
+      <div class="feature-desc">Búsqueda automática de referencias y gestión bibliográfica integrada. Próximamente.</div>
+      <span class="feature-tag tag-premium">PRÓXIMO</span>
+    </div>
+  </div>
+</div>
+
+<!-- PICO PAGE -->
+<div id="pico" class="page">
+  <div class="page-header">
+    <div class="page-tag">Módulo 01</div>
+    <h1 class="page-title">Generador de Pregunta PICO</h1>
+    <p class="page-desc">Ingresa los datos básicos de tu investigación y la IA generará una pregunta estructurada con objetivos claros.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="icon">✏️</div> Datos de tu investigación</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tema de investigación</label>
+        <input type="text" id="pico-topic" placeholder="Ej: diabetes tipo 2 en adultos mayores">
+      </div>
+      <div class="form-group">
+        <label>Área médica</label>
+        <select id="pico-area">
+          <option value="">Seleccionar...</option>
+          <option>Medicina Interna</option>
+          <option>Cardiología</option>
+          <option>Endocrinología</option>
+          <option>Neurología</option>
+          <option>Oncología</option>
+          <option>Pediatría</option>
+          <option>Ginecología y Obstetricia</option>
+          <option>Cirugía General</option>
+          <option>Salud Pública</option>
+          <option>Psiquiatría</option>
+          <option>Epidemiología</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Población objetivo</label>
+        <input type="text" id="pico-pop" placeholder="Ej: adultos mayores de 60 años con DM2">
+      </div>
+      <div class="form-group">
+        <label>Intervención / Exposición</label>
+        <input type="text" id="pico-inter" placeholder="Ej: metformina vs insulina">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Comparación (opcional)</label>
+        <input type="text" id="pico-comp" placeholder="Ej: tratamiento convencional">
+      </div>
+      <div class="form-group">
+        <label>Desenlace (Outcome)</label>
+        <input type="text" id="pico-out" placeholder="Ej: control glucémico a 6 meses">
+      </div>
+    </div>
+    <button class="btn-primary" onclick="generatePICO()">✦ Generar pregunta PICO</button>
+  </div>
+
+  <div class="loading-dots" id="pico-loading">
+    <span></span><span></span><span></span>
+    <span style="margin-left:8px; font-size:0.82rem; color:var(--muted);">Generando con IA...</span>
+  </div>
+
+  <div class="output-block" id="pico-output">
+    <div class="result-card">
+      <div class="result-label">Pregunta PICO</div>
+      <div class="result-text" id="pico-question"></div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Objetivo General</div>
+      <div class="result-text" id="pico-general"></div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Objetivos Específicos</div>
+      <ul class="objectives-list" id="pico-objectives"></ul>
+    </div>
+    <div style="margin-top:16px; display:flex; gap:10px;">
+      <button class="btn-primary" onclick="showPage('design')">Continuar → Diseño metodológico</button>
+      <button class="btn-secondary" onclick="copyPICO()">Copiar texto</button>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGN PAGE -->
+<div id="design" class="page">
+  <div class="page-header">
+    <div class="page-tag">Módulo 02</div>
+    <h1 class="page-title">Selector de Diseño Metodológico</h1>
+    <p class="page-desc">Responde las siguientes preguntas para identificar el diseño de estudio más apropiado para tu investigación.</p>
+  </div>
+
+  <div class="questions-flow">
+    <div class="question-block">
+      <div class="result-label">Pregunta 1 de 3</div>
+      <div class="question-text">¿Cuál es el objetivo principal de tu investigación?</div>
+      <div class="options-grid">
+        <button class="option-btn" onclick="selectOption(this,'q1','describir')">📋 Describir características de una población</button>
+        <button class="option-btn" onclick="selectOption(this,'q1','causalidad')">🔬 Evaluar causalidad o efecto</button>
+        <button class="option-btn" onclick="selectOption(this,'q1','pronostico')">📈 Estudiar pronóstico o evolución</button>
+        <button class="option-btn" onclick="selectOption(this,'q1','intervencion')">💊 Evaluar una intervención</button>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="result-label">Pregunta 2 de 3</div>
+      <div class="question-text">¿Puedes controlar quién recibe la intervención o exposición?</div>
+      <div class="options-grid">
+        <button class="option-btn" onclick="selectOption(this,'q2','si')">✅ Sí, tengo control sobre la asignación</button>
+        <button class="option-btn" onclick="selectOption(this,'q2','no')">❌ No, solo observo lo que ocurre</button>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="result-label">Pregunta 3 de 3</div>
+      <div class="question-text">¿Cómo medirás las variables?</div>
+      <div class="options-grid">
+        <button class="option-btn" onclick="selectOption(this,'q3','unico')">📅 En un único momento (transversal)</button>
+        <button class="option-btn" onclick="selectOption(this,'q3','prospectivo')">⏩ Seguimiento hacia adelante</button>
+        <button class="option-btn" onclick="selectOption(this,'q3','retrospectivo')">⏪ Revisando datos pasados</button>
+        <button class="option-btn" onclick="selectOption(this,'q3','casos')">🔎 Casos individuales o series</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="getDesign()">✦ Obtener diseño recomendado</button>
+  </div>
+
+  <div class="design-result" id="design-result">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+      <span style="background:rgba(255,255,255,0.15); padding:4px 10px; border-radius:6px; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.08em;">DISEÑO RECOMENDADO</span>
+    </div>
+    <div class="design-name" id="design-name"></div>
+    <div class="design-meta" id="design-meta"></div>
+    <hr style="border:none; border-top:1px solid rgba(255,255,255,0.15); margin:16px 0;">
+    <div class="design-pros" id="design-pros"></div>
+    <div style="margin-top:10px;" class="design-cons" id="design-cons"></div>
+    <div style="margin-top:20px;">
+      <button class="btn-secondary" onclick="showPage('sample')" style="background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.2); color:white;">Continuar → Calculadora de muestra</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAMPLE SIZE PAGE -->
+<div id="sample" class="page">
+  <div class="page-header">
+    <div class="page-tag">Módulo 03</div>
+    <h1 class="page-title">Calculadora de Tamaño Muestral</h1>
+    <p class="page-desc">Calcula el número de participantes necesarios con base en parámetros estadísticos estándar.</p>
+  </div>
+
+  <div class="calc-tabs">
+    <button class="calc-tab active" onclick="switchCalc('prev')">Estudio de Prevalencia</button>
+    <button class="calc-tab" onclick="switchCalc('means')">Comparación de Medias</button>
+  </div>
+
+  <!-- PREVALENCE -->
+  <div class="calc-panel active" id="calc-prev">
+    <div class="card">
+      <div class="card-title"><div class="icon">📊</div> Parámetros — Prevalencia</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prevalencia esperada (%)</label>
+          <input type="number" id="prev-p" value="30" min="1" max="99" placeholder="30">
+        </div>
+        <div class="form-group">
+          <label>Nivel de confianza</label>
+          <select id="prev-ci">
+            <option value="1.645">90% (z=1.645)</option>
+            <option value="1.96" selected>95% (z=1.96)</option>
+            <option value="2.576">99% (z=2.576)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Precisión / Margen de error (%)</label>
+          <input type="number" id="prev-e" value="5" min="1" max="20" placeholder="5">
+        </div>
+        <div class="form-group">
+          <label>Población total (si es finita)</label>
+          <input type="number" id="prev-N" placeholder="Dejar vacío si infinita">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="calcPrevalence()">✦ Calcular tamaño muestral</button>
+    </div>
+
+    <div class="output-block" id="prev-output">
+      <div class="result-card">
+        <div class="result-label">Tamaño muestral requerido</div>
+        <div class="result-number" id="prev-n">—</div>
+        <div class="result-number-label">participantes</div>
+        <div class="result-grid">
+          <div class="result-stat">
+            <div class="stat-val" id="prev-stat-p">—</div>
+            <div class="stat-lbl">Prevalencia esperada</div>
+          </div>
+          <div class="result-stat">
+            <div class="stat-val" id="prev-stat-ci">—</div>
+            <div class="stat-lbl">Nivel de confianza</div>
+          </div>
+          <div class="result-stat">
+            <div class="stat-val" id="prev-stat-e">—</div>
+            <div class="stat-lbl">Margen de error</div>
+          </div>
+        </div>
+        <div style="margin-top:16px; padding:12px; background:var(--cream); border-radius:8px; font-size:0.82rem; color:var(--muted); line-height:1.6;" id="prev-formula">
+          <strong>Fórmula:</strong> n = z² × p(1-p) / e²
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEANS -->
+  <div class="calc-panel" id="calc-means">
+    <div class="card">
+      <div class="card-title"><div class="icon">📐</div> Parámetros — Comparación de Medias</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Desviación estándar (σ)</label>
+          <input type="number" id="means-sd" value="15" placeholder="15">
+        </div>
+        <div class="form-group">
+          <label>Diferencia mínima detectable (δ)</label>
+          <input type="number" id="means-d" value="5" placeholder="5">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nivel de significancia (α)</label>
+          <select id="means-alpha">
+            <option value="1.96" selected>0.05 (bilateral)</option>
+            <option value="1.645">0.10 (bilateral)</option>
+            <option value="2.576">0.01 (bilateral)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Potencia estadística (1-β)</label>
+          <select id="means-power">
+            <option value="0.842" selected>80% (β=0.20)</option>
+            <option value="1.036">85% (β=0.15)</option>
+            <option value="1.282">90% (β=0.10)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="calcMeans()">✦ Calcular tamaño muestral</button>
+    </div>
+
+    <div class="output-block" id="means-output">
+      <div class="result-card">
+        <div class="result-label">Tamaño muestral por grupo</div>
+        <div class="result-number" id="means-n">—</div>
+        <div class="result-number-label">participantes por grupo (<span id="means-total">—</span> total)</div>
+        <div class="result-grid">
+          <div class="result-stat">
+            <div class="stat-val" id="means-stat-sd">—</div>
+            <div class="stat-lbl">Desv. estándar</div>
+          </div>
+          <div class="result-stat">
+            <div class="stat-val" id="means-stat-d">—</div>
+            <div class="stat-lbl">Diferencia mínima</div>
+          </div>
+          <div class="result-stat">
+            <div class="stat-val" id="means-stat-pw">—</div>
+            <div class="stat-lbl">Potencia</div>
+          </div>
+        </div>
+        <div style="margin-top:16px; padding:12px; background:var(--cream); border-radius:8px; font-size:0.82rem; color:var(--muted); line-height:1.6;">
+          <strong>Fórmula:</strong> n = (z<sub>α/2</sub> + z<sub>β</sub>)² × 2σ² / δ²
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS PAGE -->
+<div id="stats" class="page">
+  <div class="page-header">
+    <div class="page-tag">Módulo 04</div>
+    <h1 class="page-title">Recomendador de Test Estadístico</h1>
+    <p class="page-desc">Selecciona el tipo de variables y estructura del estudio para obtener la prueba estadística apropiada.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="icon">🔢</div> Características de tus variables</div>
+    <div class="stat-select-row">
+      <div class="form-group">
+        <label>Variable dependiente</label>
+        <select id="stats-dep" onchange="updateStats()">
+          <option value="">Seleccionar tipo...</option>
+          <option value="continua">Continua (ej: glucosa, presión)</option>
+          <option value="categorica2">Categórica binaria (ej: sí/no)</option>
+          <option value="categorica3">Categórica politómica (ej: leve/moderado/grave)</option>
+          <option value="ordinal">Ordinal (ej: escala Likert)</option>
+          <option value="tiempo">Tiempo hasta evento (supervivencia)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Variable independiente</label>
+        <select id="stats-ind" onchange="updateStats()">
+          <option value="">Seleccionar tipo...</option>
+          <option value="categorica2">Categórica binaria (2 grupos)</option>
+          <option value="categorica3">Categórica (3+ grupos)</option>
+          <option value="continua">Continua</option>
+          <option value="pareado">Muestras pareadas/relacionadas</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Distribución de datos</label>
+        <select id="stats-dist" onchange="updateStats()">
+          <option value="">Seleccionar...</option>
+          <option value="normal">Normal (paramétrica)</option>
+          <option value="nonormal">No normal (no paramétrica)</option>
+          <option value="desconocida">No verificada / n pequeño</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-result" id="stats-result">
+    <div class="result-label">Test estadístico recomendado</div>
+    <div class="stat-test-name" id="stats-test-name"></div>
+    <div id="stats-test-alt" style="font-size:0.82rem; color:var(--muted); margin-bottom:12px;"></div>
+    <div class="stat-interp" id="stats-interp"></div>
+    <div class="stat-assumptions">
+      <div style="font-weight:600; font-size:0.85rem; margin-bottom:8px;">Supuestos y consideraciones:</div>
+      <div id="stats-assumptions"></div>
+    </div>
+    <div style="margin-top:16px;">
+      <button class="btn-primary" onclick="showPage('article')">Continuar → Estructura de artículo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLE PAGE -->
+<div id="article" class="page">
+  <div class="page-header">
+    <div class="page-tag">Módulo 05 · Premium</div>
+    <h1 class="page-title">Generador de Estructura de Artículo</h1>
+    <p class="page-desc">Selecciona el tipo de publicación y genera una plantilla completa con guías de escritura para cada sección.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="icon">📄</div> Tipo de publicación</div>
+    <div class="template-grid">
+      <div class="template-card" onclick="selectTemplate(this,'original')">
+        <div class="template-icon">🔬</div>
+        <div class="template-name">Artículo Original</div>
+        <div class="template-desc">Reporte de investigación primaria con metodología, resultados y discusión completa.</div>
+      </div>
+      <div class="template-card" onclick="selectTemplate(this,'caso')">
+        <div class="template-icon">🩺</div>
+        <div class="template-name">Caso Clínico</div>
+        <div class="template-desc">Descripción detallada de un paciente o grupo de pacientes con características inusuales.</div>
+      </div>
+      <div class="template-card" onclick="selectTemplate(this,'revision')">
+        <div class="template-icon">📚</div>
+        <div class="template-name">Revisión Narrativa</div>
+        <div class="template-desc">Síntesis crítica de la literatura existente sobre un tema de interés clínico.</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Título tentativo del estudio</label>
+        <input type="text" id="art-title" placeholder="Ej: Efecto de la metformina en el control glucémico...">
+      </div>
+      <div class="form-group">
+        <label>Revista objetivo (opcional)</label>
+        <input type="text" id="art-journal" placeholder="Ej: Revista Médica de Chile">
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="generateStructure()">✦ Generar estructura completa</button>
+  </div>
+
+  <div class="structure-output" id="art-output">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+      <div>
+        <div class="result-label">Estructura generada</div>
+        <div style="font-family:'Libre Baskerville',serif; font-size:1.1rem; font-weight:700;" id="art-output-title"></div>
+      </div>
+      <button class="btn-secondary">⬇ Exportar borrador</button>
+    </div>
+    <div id="art-sections"></div>
+    <div style="margin-top:16px; padding:14px; background:var(--cream); border:1px solid var(--border); border-radius:10px;">
+      <div style="font-size:0.78rem; font-weight:600; color:var(--muted); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:6px;">ℹ Nota Premium</div>
+      <div style="font-size:0.82rem; color:var(--muted); line-height:1.6;">Con el plan Premium, cada sección se completa automáticamente con el contenido de tu investigación y se adapta a las guías de la revista seleccionada (IMRAD, Vancouver, etc.).</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── NAVIGATION ────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const names = ['home','pico','design','sample','stats','article'];
+  const idx = names.indexOf(id);
+  if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ─── PICO GENERATOR ────────────────────────────────────────────
+async function generatePICO() {
+  const topic = document.getElementById('pico-topic').value || 'diabetes tipo 2';
+  const area = document.getElementById('pico-area').value || 'Endocrinología';
+  const pop = document.getElementById('pico-pop').value || 'adultos mayores de 60 años';
+  const inter = document.getElementById('pico-inter').value || 'metformina';
+  const comp = document.getElementById('pico-comp').value || 'placebo';
+  const out = document.getElementById('pico-out').value || 'control glucémico';
+
+  const loading = document.getElementById('pico-loading');
+  const output = document.getElementById('pico-output');
+  loading.classList.add('visible');
+  output.classList.remove('visible');
+
+  const prompt = `Eres un experto en metodología de investigación médica. Genera lo siguiente en español, de forma concisa y científicamente rigurosa:
+
+1. Una pregunta PICO bien estructurada
+2. Un objetivo general claro
+3. Tres objetivos específicos numerados
+
+Datos del investigador:
+- Tema: ${topic}
+- Área: ${area}
+- Población (P): ${pop}
+- Intervención/Exposición (I): ${inter}
+- Comparación (C): ${comp || 'no especificada'}
+- Desenlace (O): ${out}
+
+Responde SOLO en formato JSON, sin texto adicional ni backticks:
+{
+  "pregunta": "texto de la pregunta PICO completa",
+  "objetivo_general": "texto del objetivo general",
+  "objetivos": ["objetivo 1", "objetivo 2", "objetivo 3"]
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    document.getElementById('pico-question').innerHTML =
+      parsed.pregunta.replace(/\b(P|I|C|O):/g, '<strong>$1:</strong>');
+    document.getElementById('pico-general').textContent = parsed.objetivo_general;
+
+    const list = document.getElementById('pico-objectives');
+    list.innerHTML = '';
+    parsed.objetivos.forEach((obj, i) => {
+      list.innerHTML += `<li><span class="obj-num">${i+1}.</span><span>${obj}</span></li>`;
+    });
+
+    loading.classList.remove('visible');
+    output.classList.add('visible');
+  } catch (e) {
+    // Fallback
+    document.getElementById('pico-question').innerHTML =
+      `En <strong>P:</strong> ${pop}, ¿<strong>I:</strong> ${inter} comparado con <strong>C:</strong> ${comp || 'tratamiento estándar'}, tiene efecto sobre <strong>O:</strong> ${out}?`;
+    document.getElementById('pico-general').textContent =
+      `Determinar el efecto de ${inter} sobre ${out} en ${pop} con ${topic}.`;
+    const list = document.getElementById('pico-objectives');
+    list.innerHTML = `
+      <li><span class="obj-num">1.</span><span>Describir las características sociodemográficas y clínicas de ${pop} incluidos en el estudio.</span></li>
+      <li><span class="obj-num">2.</span><span>Evaluar la diferencia en ${out} entre el grupo expuesto a ${inter} y el grupo comparador.</span></li>
+      <li><span class="obj-num">3.</span><span>Identificar factores asociados al ${out} mediante análisis multivariado.</span></li>`;
+    loading.classList.remove('visible');
+    output.classList.add('visible');
+  }
+}
+
+function copyPICO() {
+  const q = document.getElementById('pico-question').textContent;
+  const g = document.getElementById('pico-general').textContent;
+  navigator.clipboard.writeText(`Pregunta PICO:\n${q}\n\nObjetivo General:\n${g}`);
+  alert('Copiado al portapapeles');
+}
+
+// ─── DESIGN SELECTOR ───────────────────────────────────────────
+const answers = {};
+function selectOption(el, q, val) {
+  el.closest('.question-block').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[q] = val;
+}
+
+const designs = {
+  default: {
+    name: 'Estudio Transversal',
+    meta: 'Observacional · Una medición · Bajo costo',
+    pros: '✓ Rápido y económico de realizar<br>✓ Útil para estimar prevalencia<br>✓ Bueno para generar hipótesis',
+    cons: '⚠ No establece causalidad<br>⚠ Sesgo de prevalencia-incidencia'
+  },
+  causalidad_si_prospectivo: {
+    name: 'Ensayo Clínico Controlado',
+    meta: 'Experimental · Aleatorizado · Alto nivel de evidencia',
+    pros: '✓ Máximo nivel de evidencia<br>✓ Controla variables de confusión<br>✓ Establece relación causal',
+    cons: '⚠ Costoso y tiempo prolongado<br>⚠ Requiere comité de ética<br>⚠ Criterios de exclusión estrictos'
+  },
+  causalidad_no_retrospectivo: {
+    name: 'Estudio Caso-Control',
+    meta: 'Observacional · Retrospectivo · Eficiente para eventos raros',
+    pros: '✓ Ideal para enfermedades raras<br>✓ Eficiente en tiempo y costo<br>✓ Permite múltiples exposiciones',
+    cons: '⚠ Sujeto a sesgo de recuerdo<br>⚠ Dificultad para seleccionar controles'
+  },
+  pronostico_no_prospectivo: {
+    name: 'Estudio de Cohorte',
+    meta: 'Observacional · Prospectivo · Sigue a una población en el tiempo',
+    pros: '✓ Permite calcular incidencia<br>✓ Examina múltiples desenlaces<br>✓ Establece temporalidad',
+    cons: '⚠ Tiempo y costo elevados<br>⚠ Pérdida de seguimiento'
+  },
+  describir_no_casos: {
+    name: 'Serie de Casos / Reporte de Caso',
+    meta: 'Descriptivo · Exploratorio · Bajo nivel de evidencia',
+    pros: '✓ Útil para condiciones nuevas o raras<br>✓ Rápido y económico<br>✓ Genera hipótesis para futuras investigaciones',
+    cons: '⚠ No permite inferencias causales<br>⚠ Sin grupo de comparación'
+  }
+};
+
+function getDesign() {
+  const q1 = answers.q1, q2 = answers.q2, q3 = answers.q3;
+  let key = 'default';
+  if (q1 === 'intervencion' && q2 === 'si') key = 'causalidad_si_prospectivo';
+  else if ((q1 === 'causalidad' || q1 === 'pronostico') && q2 === 'no' && q3 === 'retrospectivo') key = 'causalidad_no_retrospectivo';
+  else if ((q1 === 'pronostico' || q1 === 'causalidad') && q3 === 'prospectivo') key = 'pronostico_no_prospectivo';
+  else if (q3 === 'casos' || q1 === 'describir') key = 'describir_no_casos';
+
+  const d = designs[key];
+  document.getElementById('design-name').textContent = d.name;
+  document.getElementById('design-meta').textContent = d.meta;
+  document.getElementById('design-pros').innerHTML = `<div style="font-size:0.78rem; color:#aaa; margin-bottom:4px; font-family:'DM Mono',monospace; letter-spacing:.08em; text-transform:uppercase;">VENTAJAS</div>${d.pros}`;
+  document.getElementById('design-cons').innerHTML = `<div style="font-size:0.78rem; color:#aaa; margin-bottom:4px; font-family:'DM Mono',monospace; letter-spacing:.08em; text-transform:uppercase;">CONSIDERACIONES</div>${d.cons}`;
+  document.getElementById('design-result').classList.add('visible');
+}
+
+// ─── SAMPLE SIZE ────────────────────────────────────────────────
+function switchCalc(type) {
+  document.querySelectorAll('.calc-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.calc-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('calc-' + type).classList.add('active');
+}
+
+function calcPrevalence() {
+  const p = parseFloat(document.getElementById('prev-p').value) / 100 || 0.3;
+  const z = parseFloat(document.getElementById('prev-ci').value) || 1.96;
+  const e = parseFloat(document.getElementById('prev-e').value) / 100 || 0.05;
+  const Nval = document.getElementById('prev-N').value;
+
+  let n = Math.ceil((z * z * p * (1 - p)) / (e * e));
+  if (Nval && parseFloat(Nval) > 0) {
+    const N = parseFloat(Nval);
+    n = Math.ceil(n / (1 + (n - 1) / N));
+  }
+
+  document.getElementById('prev-n').textContent = n.toLocaleString();
+  document.getElementById('prev-stat-p').textContent = (p * 100) + '%';
+  document.getElementById('prev-stat-ci').textContent = Math.round((1 - (z === 1.645 ? 0.1 : z === 1.96 ? 0.05 : 0.01)) * 100) + '%';
+  document.getElementById('prev-stat-e').textContent = '±' + (e * 100) + '%';
+  document.getElementById('prev-formula').innerHTML = `<strong>Fórmula:</strong> n = z² × p(1−p) / e² = ${z}² × ${(p).toFixed(2)}×${(1-p).toFixed(2)} / ${e}² = <strong>${n}</strong>${Nval ? ` (ajustado a N=${Nval})` : ''}`;
+  document.getElementById('prev-output').classList.add('visible');
+}
+
+function calcMeans() {
+  const sd = parseFloat(document.getElementById('means-sd').value) || 15;
+  const d = parseFloat(document.getElementById('means-d').value) || 5;
+  const za = parseFloat(document.getElementById('means-alpha').value) || 1.96;
+  const zb = parseFloat(document.getElementById('means-power').value) || 0.842;
+
+  const n = Math.ceil(Math.pow(za + zb, 2) * 2 * sd * sd / (d * d));
+
+  document.getElementById('means-n').textContent = n.toLocaleString();
+  document.getElementById('means-total').textContent = (n * 2).toLocaleString();
+  document.getElementById('means-stat-sd').textContent = 'σ=' + sd;
+  document.getElementById('means-stat-d').textContent = 'δ=' + d;
+  const pwMap = {'0.842':'80%','1.036':'85%','1.282':'90%'};
+  document.getElementById('means-stat-pw').textContent = pwMap[String(zb)] || '80%';
+  document.getElementById('means-output').classList.add('visible');
+}
+
+// ─── STATS RECOMMENDER ─────────────────────────────────────────
+const statTests = {
+  'continua_categorica2_normal': {
+    name: 'T de Student (independiente)',
+    alt: 'Alternativa no paramétrica: U de Mann-Whitney',
+    interp: 'Compara las medias de dos grupos independientes. Requiere que los datos sigan distribución normal en cada grupo. Reporta: media ± DE, valor t, grados de libertad y p.',
+    assumptions: ['Distribución normal en cada grupo', 'Varianzas iguales (verificar con Levene)', 'Observaciones independientes', 'Variable continua']
+  },
+  'continua_categorica2_nonormal': {
+    name: 'U de Mann-Whitney',
+    alt: 'Equivalente paramétrico: T de Student',
+    interp: 'Prueba no paramétrica para comparar dos grupos independientes. Compara medianas/rangos. Reporta: mediana (RIC), estadístico U y p.',
+    assumptions: ['No requiere distribución normal', 'Variable al menos ordinal', 'Grupos independientes']
+  },
+  'continua_categorica3_normal': {
+    name: 'ANOVA de una vía',
+    alt: 'Si p<0.05, aplicar post-hoc (Tukey, Bonferroni)',
+    interp: 'Compara medias de tres o más grupos independientes. Si detecta diferencias globales, requiere análisis post-hoc para identificar qué pares difieren.',
+    assumptions: ['Normalidad en cada grupo', 'Homogeneidad de varianzas (Levene)', 'Independencia de observaciones']
+  },
+  'continua_categorica3_nonormal': {
+    name: 'Kruskal-Wallis',
+    alt: 'Post-hoc: Dunn con corrección de Bonferroni',
+    interp: 'Extensión no paramétrica del ANOVA. Compara distribuciones de tres o más grupos independientes mediante rangos.',
+    assumptions: ['No requiere normalidad', 'Variable al menos ordinal', 'Muestras independientes']
+  },
+  'continua_continua_normal': {
+    name: 'Correlación de Pearson / Regresión lineal',
+    alt: 'Si hay causalidad: regresión lineal simple o múltiple',
+    interp: 'Cuantifica la relación lineal entre dos variables continuas. Pearson para asociación, regresión si hay variable dependiente. Reporta: r o R², valor t y p.',
+    assumptions: ['Linealidad', 'Normalidad bivariada', 'Homocedasticidad', 'Sin valores atípicos extremos']
+  },
+  'continua_pareado_normal': {
+    name: 'T de Student (pareada)',
+    alt: 'No paramétrica: Prueba de Wilcoxon de rangos con signo',
+    interp: 'Compara medias en el mismo grupo antes y después, o en pares relacionados. Analiza las diferencias individuales.',
+    assumptions: ['Diferencias normalmente distribuidas', 'Pares de observaciones', 'Escala de medición continua']
+  },
+  'categorica2_categorica2_normal': {
+    name: 'Chi-cuadrado (χ²) de Pearson',
+    alt: 'Si celdas <5: Prueba exacta de Fisher',
+    interp: 'Evalúa si existe asociación entre dos variables categóricas. Compara frecuencias observadas vs esperadas. Reporta: χ², gl y p. Complementar con OR o RR.',
+    assumptions: ['Frecuencias esperadas ≥5 en 80% de celdas', 'Observaciones independientes', 'Muestra aleatoria']
+  },
+  'tiempo_categorica2_normal': {
+    name: 'Análisis de supervivencia (Kaplan-Meier + Log-rank)',
+    alt: 'Regresión de Cox para múltiples variables',
+    interp: 'Estima y compara el tiempo hasta un evento entre grupos. Kaplan-Meier genera curvas de supervivencia; Log-rank prueba si difieren significativamente.',
+    assumptions: ['Censura aleatoria (no informativa)', 'Riesgo proporcional entre grupos', 'Eventos claramente definidos']
+  }
+};
+
+function updateStats() {
+  const dep = document.getElementById('stats-dep').value;
+  const ind = document.getElementById('stats-ind').value;
+  const dist = document.getElementById('stats-dist').value;
+  if (!dep || !ind || !dist) return;
+
+  const distKey = dist === 'normal' ? 'normal' : 'nonormal';
+  const key = `${dep}_${ind}_${distKey}`;
+  const fallbackKey = `${dep}_${ind}_normal`;
+  const test = statTests[key] || statTests[fallbackKey] || {
+    name: 'Consultar con bioestadístico',
+    alt: 'La combinación seleccionada requiere análisis específico',
+    interp: 'Para esta combinación de variables, se recomienda consultar con un especialista en bioestadística para elegir la prueba más adecuada.',
+    assumptions: ['Verificar tipo de variables', 'Evaluar distribución', 'Considerar objetivo del análisis']
+  };
+
+  document.getElementById('stats-test-name').textContent = test.name;
+  document.getElementById('stats-test-alt').textContent = test.alt;
+  document.getElementById('stats-interp').textContent = test.interp;
+
+  const assEl = document.getElementById('stats-assumptions');
+  assEl.innerHTML = test.assumptions.map(a =>
+    `<div class="stat-assumption"><span class="check">✓</span><span>${a}</span></div>`
+  ).join('');
+
+  document.getElementById('stats-result').classList.add('visible');
+}
+
+// ─── ARTICLE GENERATOR ─────────────────────────────────────────
+let selectedTemplate = '';
+
+function selectTemplate(el, type) {
+  document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTemplate = type;
+}
+
+const templates = {
+  original: [
+    { n: '1', name: 'Título y Autores', hint: 'Título conciso (<20 palabras), afiliaciones y autor de correspondencia. Declarar conflictos de interés.', words: '~15–20 palabras' },
+    { n: '2', name: 'Resumen estructurado', hint: 'Antecedentes, Objetivo, Métodos, Resultados y Conclusiones. Máximo 250 palabras. Incluir 4–6 palabras clave (MeSH).', words: '200–250 palabras' },
+    { n: '3', name: 'Introducción', hint: 'Contexto y magnitud del problema, vacío de conocimiento, objetivo del estudio. Pirámide invertida. No incluir resultados.', words: '400–600 palabras' },
+    { n: '4', name: 'Métodos', hint: 'Diseño, población/muestra, criterios de selección, variables, instrumentos, análisis estadístico, aspectos éticos. Reproducible.', words: '600–900 palabras' },
+    { n: '5', name: 'Resultados', hint: 'Datos objetivos sin interpretación. Tabla 1 siempre: características basales. Usar tablas y figuras. Texto complementa, no repite.', words: '500–800 palabras' },
+    { n: '6', name: 'Discusión', hint: 'Hallazgo principal → comparación con literatura → mecanismos → fortalezas y limitaciones → implicaciones clínicas.', words: '700–1000 palabras' },
+    { n: '7', name: 'Conclusiones', hint: 'Responder la pregunta de investigación. Breve, sin nuevos datos. Implicación práctica final.', words: '100–150 palabras' },
+    { n: '8', name: 'Referencias', hint: 'Formato Vancouver. 25–40 referencias recientes (últimos 5 años preferible). Incluir al menos un metaanálisis o revisión sistemática.', words: '25–40 citas' }
+  ],
+  caso: [
+    { n: '1', name: 'Título', hint: 'Incluir condición, hallazgo inusual o lección clínica. Ej: "Presentación atípica de X en Y: reporte de caso"', words: '~15 palabras' },
+    { n: '2', name: 'Resumen', hint: 'Introducción breve, presentación del caso, resultados y conclusión/lección aprendida. Palabras clave.', words: '150–200 palabras' },
+    { n: '3', name: 'Introducción', hint: 'Por qué este caso es relevante o inusual. Frecuencia de la condición. Objetivo del reporte.', words: '200–300 palabras' },
+    { n: '4', name: 'Presentación del caso', hint: 'Historia clínica (edad, sexo, motivo de consulta), examen físico, estudios diagnósticos, diagnóstico diferencial, diagnóstico final.', words: '500–800 palabras' },
+    { n: '5', name: 'Tratamiento y evolución', hint: 'Intervención realizada, respuesta al tratamiento, seguimiento, desenlace final del paciente.', words: '200–400 palabras' },
+    { n: '6', name: 'Discusión', hint: 'Comparar con casos similares en la literatura. Lección clínica principal. Implicaciones para la práctica.', words: '400–600 palabras' },
+    { n: '7', name: 'Conclusión', hint: 'Mensaje principal del caso. ¿Qué debe recordar el lector?', words: '80–120 palabras' },
+    { n: '8', name: 'Consentimiento y Referencias', hint: 'Declarar consentimiento informado del paciente. Referencias relevantes en Vancouver.', words: '10–20 citas' }
+  ],
+  revision: [
+    { n: '1', name: 'Título y Resumen', hint: 'Indicar explícitamente "revisión narrativa". Resumen no estructurado. Alcance y período cubierto.', words: '200–250 palabras' },
+    { n: '2', name: 'Introducción', hint: 'Relevancia clínica del tema, propósito de la revisión, alcance y limitaciones del análisis.', words: '300–500 palabras' },
+    { n: '3', name: 'Métodos de búsqueda', hint: 'Bases de datos (PubMed, Scopus), ecuación de búsqueda, período, idiomas, criterios de inclusión/exclusión.', words: '200–350 palabras' },
+    { n: '4', name: 'Desarrollo (subtemas)', hint: 'Organizar por temas lógicos. Cada subtema con subtítulo. Síntesis crítica, no listado de estudios.', words: '1500–3000 palabras' },
+    { n: '5', name: 'Discusión / Perspectivas', hint: 'Áreas de controversia, vacíos de conocimiento, líneas de investigación futura, implicaciones prácticas.', words: '400–600 palabras' },
+    { n: '6', name: 'Conclusiones', hint: 'Síntesis de los principales hallazgos. Recomendaciones concretas para la práctica clínica.', words: '150–200 palabras' },
+    { n: '7', name: 'Referencias', hint: 'Formato Vancouver o según la revista. Mínimo 40 referencias para una revisión completa. Priorizar meta-análisis.', words: '40–80 citas' }
+  ]
+};
+
+function generateStructure() {
+  if (!selectedTemplate) { alert('Selecciona un tipo de publicación primero.'); return; }
+  const title = document.getElementById('art-title').value || 'Tu investigación';
+  const typeNames = { original: 'Artículo Original', caso: 'Caso Clínico', revision: 'Revisión Narrativa' };
+
+  document.getElementById('art-output-title').textContent = `${typeNames[selectedTemplate]}: ${title}`;
+
+  const sections = templates[selectedTemplate];
+  const container = document.getElementById('art-sections');
+  container.innerHTML = sections.map(s => `
+    <div class="section-item">
+      <span class="section-num">${s.n}</span>
+      <div class="section-content">
+        <div class="section-name">${s.name}</div>
+        <div class="section-hint">${s.hint}</div>
+        <div class="section-words">${s.words}</div>
+      </div>
+      <span style="color:var(--muted); font-size:1rem; opacity:0.4">›</span>
+    </div>
+  `).join('');
+
+  document.getElementById('art-output').classList.add('visible');
+}
+</script>
+</body>
+</html>
